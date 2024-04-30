@@ -13,7 +13,7 @@ class Project(Base):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    title: Mapped[str] = mapped_column(String(256), nullable=False, unique=True)
 
     created_at: Mapped[datetime.datetime] = mapped_column(nullable=False, default=datetime.datetime.now())
     updated_at: Mapped[datetime.datetime] = mapped_column(nullable=False, default=datetime.datetime.now(),

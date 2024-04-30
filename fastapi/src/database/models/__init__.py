@@ -1,1 +1,2 @@
-from users import User
+from src.database.models.bots import *
+

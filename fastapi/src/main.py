@@ -2,6 +2,7 @@ from fastapi import Request
 import uvicorn
 from fastapi import FastAPI
 
+from src.api.routers.base import create_app_routers
 from src.config.app.config import settings_app
 
 
@@ -11,7 +12,7 @@ def get_application() -> FastAPI:
         debug=settings_app.DEBUG,
         version=settings_app.APP_VERSION
     )
-    # application = create_app_routers(application)
+    create_app_routers(application)
 
     return application
 

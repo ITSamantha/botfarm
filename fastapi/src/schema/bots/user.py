@@ -8,7 +8,7 @@ from src.schema.bots.project import ResponseProject
 
 
 class User(BaseModel):
-    id: str
+    id: uuid.UUID
     login: str
     password: str
 

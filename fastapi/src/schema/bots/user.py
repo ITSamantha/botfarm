@@ -7,36 +7,24 @@ from pydantic import BaseModel
 from src.schema.bots.project import ResponseProject
 
 
-class User(BaseModel):
-    id: uuid.UUID
-    login: str
-    password: str
-
-    project_id: str
-
-    env: str
-    domain: str
-
-    locktime: Optional[datetime.datetime]
-
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-    deleted_at: Optional[datetime.datetime]
-
-
 class ResponseUser(BaseModel):
     id: str
     login: str
 
     project: ResponseProject
 
-    env: str
-    domain: str
+    env: Env
+    domain: UserDomain
+
     locktime: Optional[datetime.datetime]
 
     created_at: datetime.datetime
     updated_at: datetime.datetime
     deleted_at: Optional[datetime.datetime]
+
+
+class User(ResponseUser):
+    password: str
 
 
 class CreateUser(BaseModel):
@@ -45,13 +33,19 @@ class CreateUser(BaseModel):
 
     project_id: str
 
-    env: str
-    domain: str
+    env: Env
+    domain: UserDomain
 
 
 class UpdateUser(BaseModel):
-    login: str
-    project_id: str
+    # TODO: OPTIONAL
+    login: Optional[str] = None
+    project_id: Optional[uuid.UUID] = None
 
-    env: str
-    domain: str
+    env: Optional[Env] = None
+    domain: Optional[UserDomain] = None
+
+
+class UserDomain(BaseModel):
+    id: int
+    title: str

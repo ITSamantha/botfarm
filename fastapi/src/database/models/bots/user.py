@@ -1,18 +1,17 @@
 import uuid
 import datetime
-from sqlalchemy import Enum, Integer
+from sqlalchemy import Integer
 from typing import Optional
 
 from sqlalchemy import UUID, String, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy_utils import EmailType
 
 from src.database.models.base import Base
 from src.database.models.core.env import Env
 
 
 class UserDomain(Base):
-    # CANARY = (1, 'canary')
-    # REGULAR = (2, 'regular')
     CANARY = 1
     REGULAR = 2
 
@@ -27,10 +26,11 @@ class User(Base):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    login: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    login: Mapped[str] = mapped_column(EmailType, nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String, nullable=True)
 
     project_id: Mapped[UUID] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    project: Mapped["Project"] = relationship(uselist=False, lazy="joined")
 
     env_id: Mapped[int] = mapped_column(ForeignKey("envs.id"), nullable=False)
     env: Mapped[Env] = relationship(uselist=False, lazy="joined")

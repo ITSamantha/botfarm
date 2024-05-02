@@ -5,9 +5,6 @@ from src.database.models.base import Base
 
 
 class Env(Base):
-    # PROD = (1, 'prod')
-    # PREPROD = (2, 'preprod')
-    # STAGE = (3, 'stage')
     PROD = 1
     PREPROD = 2
     STAGE = 3

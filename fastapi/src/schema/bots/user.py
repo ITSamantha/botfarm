@@ -2,14 +2,20 @@ import datetime
 import uuid
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from src.schema.bots.project import ResponseProject
+from src.schema.core import Env
+
+
+class UserDomain(BaseModel):
+    id: int
+    title: str
 
 
 class ResponseUser(BaseModel):
-    id: str
-    login: str
+    id: uuid.UUID
+    login: EmailStr
 
     project: ResponseProject
 
@@ -28,24 +34,25 @@ class User(ResponseUser):
 
 
 class CreateUser(BaseModel):
-    login: str
+    login: EmailStr
     password: str
 
-    project_id: str
+    project_id: uuid.UUID
 
-    env: Env
-    domain: UserDomain
+    env_id: int
+    domain_id: int
+
+
+class LockUser(BaseModel):
+    id: uuid.UUID
+    locktime: Optional[datetime.datetime]
 
 
 class UpdateUser(BaseModel):
-    # TODO: OPTIONAL
     login: Optional[str] = None
     project_id: Optional[uuid.UUID] = None
 
     env: Optional[Env] = None
     domain: Optional[UserDomain] = None
 
-
-class UserDomain(BaseModel):
-    id: int
-    title: str
+    locktime: Optional[datetime.datetime] = None

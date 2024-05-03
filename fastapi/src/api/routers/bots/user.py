@@ -5,110 +5,122 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 
+from src.api.routers.bots import auth
 from src.database import models
 from src.database.repository.crud.base_crud_repository import SqlAlchemyRepository
 from src.database.session_manager import db_manager
 from src.schema.bots.user import ResponseUser, CreateUser, User, UpdateUser, LockUser
 from src.schema.core import DeleteSchema
+from src.util.crypt import Crypt
+from src.util.datagen import DataGenerator
+from src.util.decorator import exception_processing
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
 )
 
+router.include_router(auth.router)
+
 
 @router.get(path="", response_model=List[ResponseUser])
+@exception_processing
 async def get_users():
     """Returns the list of users."""
 
-    try:
-        users: List[models.User] = await SqlAlchemyRepository(db_manager.get_session,
-                                                              model=models.User).get_multi(deleted_at=None)
-        return users
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
+    users: List[models.User] = await SqlAlchemyRepository(db_manager.get_session,
+                                                          model=models.User).get_multi(deleted_at=None)
+    return users
 
 
 @router.get(path="/{user_id}", response_model=ResponseUser)
+@exception_processing
 async def get_user_by_id(user_id: uuid.UUID):
     """Returns the user with the given user_id."""
 
-    try:
-        user: models.User = await SqlAlchemyRepository(db_manager.get_session,
-                                                       model=models.User).get_single(id=user_id)
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
+    user: models.User = await SqlAlchemyRepository(db_manager.get_session,
+                                                   model=models.User).get_single(id=user_id)
+
+    if not user:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user does not exist.")
+
+    return user
 
 
 @router.post(path="", response_model=User)
+@exception_processing
 async def create_user(autogenerate: bool = False, data: Optional[CreateUser] = None):
     """Returns created with the given data user."""
 
-    try:
-        user: models.User = await SqlAlchemyRepository(db_manager.get_session,
-                                                       model=models.User).create(data)
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
+    if autogenerate:
+        data, password = await DataGenerator.generate_user()
+    else:
+        password = data.password
+        crypt = Crypt()
+        data.password = crypt.hash(password)
+
+    user: models.User = await SqlAlchemyRepository(db_manager.get_session,
+                                                   model=models.User).create(data)
+
+    user.password = password
+
+    return user
 
 
 @router.delete(path="/{user_id}", response_model=ResponseUser)
+@exception_processing
 async def delete_user(user_id: uuid.UUID):
     """Returns deleted user."""
 
-    try:
-        delete_schema: DeleteSchema = DeleteSchema(deleted_at=datetime.datetime.now())
+    delete_schema: DeleteSchema = DeleteSchema(deleted_at=datetime.datetime.now())
 
-        user: models.User = await SqlAlchemyRepository(db_manager.get_session, model=models.User) \
-            .update(data=delete_schema,
-                    id=user_id)
+    user: models.User = await SqlAlchemyRepository(db_manager.get_session, model=models.User) \
+        .update(data=delete_schema,
+                id=user_id)
 
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
+    return user
 
 
 @router.patch(path="/{user_id}/acquire_lock", response_model=LockUser)
+@exception_processing
 async def acquire_lock_user(user_id: uuid.UUID):
-    try:
-        user_repo: SqlAlchemyRepository = SqlAlchemyRepository(db_manager.get_session, model=models.User)
+    """Returns locktime and user_id after user acquiring."""
 
-        user: models.User = await user_repo.get_single(id=user_id)
+    user_repo: SqlAlchemyRepository = SqlAlchemyRepository(db_manager.get_session, model=models.User)
 
-        if user.deleted_at:
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user had been deleted.")
+    user: models.User = await user_repo.get_single(id=user_id)
 
-        if user.locktime:
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user has already been locked.")
+    if user.deleted_at:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user had been deleted.")
 
-        update_schema: UpdateUser = UpdateUser(locktime=datetime.datetime.now())
+    if user.locktime:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user has already been locked.")
 
-        user: models.User = await user_repo.update(data=update_schema,
-                                                   id=user_id)
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=e.status_code, detail=str(e))
+    update_schema: UpdateUser = UpdateUser(locktime=datetime.datetime.now())
+
+    user: models.User = await user_repo.update(data=update_schema,
+                                               id=user_id)
+    return user
 
 
 @router.patch(path="/{user_id}/release_lock", response_model=LockUser)
+@exception_processing
 async def release_lock_user(user_id: uuid.UUID):
-    try:
-        user_repo: SqlAlchemyRepository = SqlAlchemyRepository(db_manager.get_session, model=models.User)
+    """Returns null locktime and user_id after user release."""
 
-        user: models.User = await user_repo.get_single(id=user_id)
+    user_repo: SqlAlchemyRepository = SqlAlchemyRepository(db_manager.get_session, model=models.User)
 
-        if user.deleted_at:
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user had been deleted.")
+    user: models.User = await user_repo.get_single(id=user_id)
 
-        if not user.locktime:
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user has not been locked.")
+    if user.deleted_at:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user had been deleted.")
 
-        update_schema: UpdateUser = UpdateUser(locktime=None)
+    if not user.locktime:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="This user has not been locked.")
 
-        user: models.User = await user_repo.update(data=update_schema,
-                                                   exclude_none=False,
-                                                   id=user_id)
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=e.status_code, detail=str(e))
+    update_schema: UpdateUser = UpdateUser(locktime=None)
+
+    user: models.User = await user_repo.update(data=update_schema,
+                                               exclude_none=False,
+                                               id=user_id)
+    return user

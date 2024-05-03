@@ -1,10 +1,5 @@
-from http import HTTPStatus
-
-from fastapi import Request
 import uvicorn
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError, HTTPException
-from starlette.responses import JSONResponse
+from fastapi import FastAPI, Request
 
 from src.api.routers.base import create_app_routers
 from src.config.app.config import settings_app

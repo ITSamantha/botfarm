@@ -1,0 +1,45 @@
+version: '3'
+services:
+
+  fastapi:
+    container_name: botfarm_fastapi
+    restart: unless-stopped
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./fastapi:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - botfarm
+
+  postgres:
+    container_name: botfarm_postgres
+    restart: unless-stopped
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./pgsql/.env
+    volumes:
+      - botfarm-pgsql-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 1
+    networks:
+      - botfarm
+
+networks:
+  botfarm:
+    driver: bridge
+
+volumes:
+  botfarm-pgsql-volume:
+    driver: local
+

@@ -1,13 +1,10 @@
 import random
-import uuid
 import pytest
 from fastapi.testclient import TestClient
 from http import HTTPStatus
 from src.main import get_application
-from src.schema.bots.project import CreateProject
 
 
-# Фикстура для создания клиента TestClient
 @pytest.fixture
 def client():
     app = get_application()
@@ -21,7 +18,6 @@ def test_get_projects(client):
     assert isinstance(response.json(), list)
 
 
-# Тест на создание проекта
 def test_create_project(client):
     number = random.randint(1, 1000)
     project = {"title": f"test project {number}"}

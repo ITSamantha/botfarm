@@ -2,8 +2,6 @@ import random
 from typing import List
 
 from faker import Faker
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import models
 from src.database.models.bots.user import UserDomain
@@ -18,7 +16,7 @@ class DataGenerator:
     """Class to generate different types of data."""
 
     @staticmethod
-    async def generate_user(session: AsyncSession) -> tuple[CreateUser, str]:
+    async def generate_user() -> tuple[CreateUser, str]:
         """Returns user and password with generated random data."""
 
         fake: Faker = Faker()
@@ -29,7 +27,7 @@ class DataGenerator:
         password: str = fake.password(length=12)
         hashed_password: str = crypt.hash(password)
 
-        projects: List[models.Project] = await SqlAlchemyRepository(session,
+        projects: List[models.Project] = await SqlAlchemyRepository(db_manager.get_session,
                                                                     model=models.Project).get_multi(deleted_at=None)
 
         project: models.Project = random.choice(projects)

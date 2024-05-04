@@ -9,6 +9,8 @@ from src.database.models.base import Base
 
 
 class Project(Base):
+    """Model to store user projects."""
+
     __tablename__ = "projects"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

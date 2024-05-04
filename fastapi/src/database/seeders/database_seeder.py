@@ -10,6 +10,7 @@ from src.database.session_manager import db_manager
 
 
 class DatabaseSeeder:
+    """Base seeder for inserting data into database."""
 
     def __init__(self):
         self.session_factory: AsyncSession = db_manager.session_factory

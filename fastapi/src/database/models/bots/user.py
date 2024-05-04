@@ -12,6 +12,8 @@ from src.database.models.core.env import Env
 
 
 class UserDomain(Base):
+    """Model to store user domains."""
+
     CANARY = 1
     REGULAR = 2
 
@@ -22,6 +24,8 @@ class UserDomain(Base):
 
 
 class User(Base):
+    """Model to store user (bot)."""
+
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

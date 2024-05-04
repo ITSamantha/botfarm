@@ -5,6 +5,8 @@ load_dotenv()
 
 
 class AppConfig(BaseSettings):
+    """Application configuration."""
+
     APP_NAME: str
     APP_VERSION: str
     DEBUG: bool

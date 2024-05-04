@@ -2,6 +2,7 @@ from sqlalchemy import select
 
 
 class GenericSeeder:
+    """Base seeder for inserting data into database."""
 
     def __init__(self):
         self.initial_data = None

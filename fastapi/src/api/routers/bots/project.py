@@ -1,10 +1,8 @@
 import datetime
 import uuid
-from http import HTTPStatus
 from typing import List
 
-from fastapi import APIRouter, HTTPException
-from starlette.responses import JSONResponse
+from fastapi import APIRouter
 
 from src.database import models
 from src.database.repository.crud.base_crud_repository import SqlAlchemyRepository
@@ -39,13 +37,13 @@ async def create_project(data: CreateProject):
     return project
 
 
-@router.patch(path="", response_model=ResponseProject)
+@router.patch(path="/{project_id}", response_model=ResponseProject)
 @exception_processing
-async def update_project(data: UpdateProject):
+async def update_project(project_id: uuid.UUID, data: UpdateProject):
     """Returns updated with the given data project."""
 
     project: models.Project = await SqlAlchemyRepository(db_manager.get_session,
-                                                         model=models.Project).update(data)
+                                                         model=models.Project).update(data, id=project_id)
     return project
 
 
@@ -64,12 +62,10 @@ async def get_project_by_id(project_id: uuid.UUID):
 async def delete_project(project_id: uuid.UUID):
     """Returns deleted project."""
 
-    # TODO: CASCADE ACTION ON USERS
-
     delete_schema: DeleteSchema = DeleteSchema(deleted_at=datetime.datetime.now())
 
     project: models.Project = await SqlAlchemyRepository(db_manager.get_session, model=models.Project) \
         .update(data=delete_schema,
                 id=project_id)
-
+    # todo: cascade delete for users
     return project

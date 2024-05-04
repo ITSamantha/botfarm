@@ -8,6 +8,8 @@ load_dotenv()
 
 
 class ConfigDatabase(BaseSettings):
+    """Database configuration."""
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str

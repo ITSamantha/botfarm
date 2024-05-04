@@ -13,6 +13,8 @@ from src.config.database.config import settings_db
 
 
 class DatabaseSessionManager:
+    """Session manager to provide connection to database."""
+
     def __init__(self) -> None:
         self.engine: Optional[AsyncEngine] = None
         self.session_factory: Optional[AsyncSession] = None

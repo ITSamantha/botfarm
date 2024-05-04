@@ -3,6 +3,8 @@ from src.database.seeders.generic_seeder import GenericSeeder
 
 
 class CoreSeeder(GenericSeeder):
+    """Seeder for core needs."""
+
     def __init__(self):
         super().__init__()
         self.initial_data = {

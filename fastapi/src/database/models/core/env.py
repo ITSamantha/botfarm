@@ -5,6 +5,8 @@ from src.database.models.base import Base
 
 
 class Env(Base):
+    """Model to store env information."""
+
     PROD = 1
     PREPROD = 2
     STAGE = 3

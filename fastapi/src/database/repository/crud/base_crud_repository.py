@@ -14,6 +14,7 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class SqlAlchemyRepository(AbstractRepository, Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+    """Base CRUD repository for models."""
 
     def __init__(self, session: AsyncSession, model: Type[ModelType] = None):
         self.model = model

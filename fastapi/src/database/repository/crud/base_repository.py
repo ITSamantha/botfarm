@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class AbstractRepository(ABC):
+    """Abstract repository."""
 
     @abstractmethod
     async def create(self, **kwargs):
